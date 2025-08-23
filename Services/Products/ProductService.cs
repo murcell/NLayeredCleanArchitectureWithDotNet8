@@ -1,5 +1,9 @@
 ﻿using App.Repositories;
 using App.Repositories.Products;
+using App.Services.ExceptionHangler;
+using App.Services.Products.Create;
+using App.Services.Products.Update;
+using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -9,12 +13,16 @@ namespace App.Services.Products;
 
 // async validation yapabilmek için IValidator<CreateProductRequest> validator parametresi ekledik
 //public class ProductService(IProductRepository productRespository, IUnitOfWork unitOfWork, IValidator<CreateProductRequest> validator): IProductService
-public class ProductService(IProductRepository productRespository, IUnitOfWork unitOfWork): IProductService
+public class ProductService(IProductRepository productRespository, IUnitOfWork unitOfWork,IMapper mapper): IProductService
 {
 	public async Task<ServiceResult<List<ProductDto>>> GetTopPriceProductsAsync(int count)
 	{
 		var products = await productRespository.GetTopPriceProductsAsync(count);
-		var productsAsDto = products.Select(p => new ProductDto(p.Id, p.Name, p.Price, p.Stock)).ToList();
+
+		var productsAsDto= mapper.Map<List<ProductDto>>(products);
+		#region Manuel Mapping
+		//var productsAsDto = products.Select(p => new ProductDto(p.Id, p.Name, p.Price, p.Stock)).ToList(); 
+		#endregion
 
 		return ServiceResult<List<ProductDto>>.Success(productsAsDto);
 	}
@@ -27,7 +35,10 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 			return ServiceResult<ProductDto?>.Fail("Product not found", System.Net.HttpStatusCode.NotFound);
 		}
 
-		var productAsDto = new ProductDto(product.Id, product.Name, product.Price, product.Stock);
+		var productAsDto = mapper.Map<ProductDto>(product);
+		#region Manuel Mapping
+		 // var productAsDto = new ProductDto(product.Id, product.Name, product.Price, product.Stock); 
+		#endregion
 
 		return ServiceResult<ProductDto?>.Success(productAsDto)!;
 	}
@@ -35,7 +46,10 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 	public async Task<ServiceResult<List<ProductDto>>> GetAllListAsync()
 	{
 		var products = await productRespository.GetAll().ToListAsync();
-		var productsAsDto = products.Select(p => new ProductDto(p.Id, p.Name, p.Price, p.Stock)).ToList();
+		var productsAsDto = mapper.Map<List<ProductDto>>(products);
+		#region Manuel Mapping
+		//var productsAsDto = products.Select(p => new ProductDto(p.Id, p.Name, p.Price, p.Stock)).ToList(); 
+		#endregion
 		return ServiceResult<List<ProductDto>>.Success(productsAsDto);
 	}
 
@@ -48,13 +62,17 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 		var query = productRespository.GetAll();
 		var totalCount = await query.CountAsync();
 		var products = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
-		var productsAsDto = products.Select(p => new ProductDto(p.Id, p.Name, p.Price, p.Stock)).ToList();
-		
+		var productsAsDto = mapper.Map<List<ProductDto>>(products);
+		#region Manuel Mapping
+		//var productsAsDto = products.Select(p => new ProductDto(p.Id, p.Name, p.Price, p.Stock)).ToList(); 
+		#endregion
 		return ServiceResult<List<ProductDto>>.Success(productsAsDto);
 	}
 
 	public async Task<ServiceResult<CreateProductResponse>> CreateAsync(CreateProductRequest request)
 	{
+		//throw new CriticalException("test amaçlı exception");
+		
 		// 2. Yol : asenkron manuel yöntem
 		// Business Codes
 		// Validation

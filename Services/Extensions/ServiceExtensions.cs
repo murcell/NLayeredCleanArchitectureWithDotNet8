@@ -1,4 +1,5 @@
-﻿using App.Services.Products;
+﻿using App.Services.ExceptionHangler;
+using App.Services.Products;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Configuration;
@@ -15,8 +16,11 @@ namespace App.Services.Extensions
 			
 			// async olarak servis metodlarında fluent validation yapmak istersek burayı kapatıyoruz.
 			services.AddFluentValidationAutoValidation();
-			
 			services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+			services.AddAutoMapper(Assembly.GetExecutingAssembly());
+			services.AddExceptionHandler<CriticalExceptionHandler>();
+			services.AddExceptionHandler<GlobalExceptionHandler>();
 			return services;
 		}
 	}
