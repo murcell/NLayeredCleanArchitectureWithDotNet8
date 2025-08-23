@@ -19,6 +19,8 @@ public class ServiceResult<T>
 	public bool IsFail => !IsSuccess;
 	[JsonIgnore]
 	public HttpStatusCode Status { get; set; }
+	[JsonIgnore]
+	public string? UrlAsCreated { get; set; }
 
 	// static factory methoda
 	public static ServiceResult<T> Success(T data, HttpStatusCode status=HttpStatusCode.OK)
@@ -30,6 +32,15 @@ public class ServiceResult<T>
 		};
 	}
 
+	public static ServiceResult<T> SuccessAsCreated(T data,string urlAsCreated)
+	{
+		return new ServiceResult<T>
+		{
+			Data = data,
+			Status = HttpStatusCode.Created,
+			UrlAsCreated = urlAsCreated
+		};
+	}
 
 	public static ServiceResult<T> Fail(string errorMessage, HttpStatusCode status = HttpStatusCode.BadRequest)
 	{

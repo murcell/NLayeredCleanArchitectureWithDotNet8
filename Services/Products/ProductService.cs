@@ -35,6 +35,20 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 		return ServiceResult<List<ProductDto>>.Success(productsAsDto);
 	}
 
+	public async Task<ServiceResult<List<ProductDto>>> GetPagedAllListAsync(int pageIndex, int pageSize)
+	{
+		// 1-10 => ilk 10 kayıt skip(0).Take(10)
+		// 2-10 => 11-20 skip(10).Take(10)
+		// 3-10 => 21-30 skip(20).Take(10)
+
+		var query = productRespository.GetAll();
+		var totalCount = await query.CountAsync();
+		var products = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+		var productsAsDto = products.Select(p => new ProductDto(p.Id, p.Name, p.Price, p.Stock)).ToList();
+		
+		return ServiceResult<List<ProductDto>>.Success(productsAsDto);
+	}
+
 	public async Task<ServiceResult<CreateProductResponse>> CreateAsync(CreateProductRequest request)
 	{
 		var product = new Product()
@@ -46,7 +60,8 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 
 		await productRespository.AddAsync(product);
 		await unitOfWork.SaveChangesAsync();
-		return ServiceResult<CreateProductResponse>.Success(new CreateProductResponse(product.Id));
+		return ServiceResult<CreateProductResponse>.SuccessAsCreated(new CreateProductResponse(product.Id),$"api/products/{product.Id}");
+
 	}
 
 	public async Task<ServiceResult> UpdateAsync(int id, UpdateProductRequest request)
@@ -65,6 +80,20 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 		product.Stock = request.Stock;
 
 		productRespository.Update(product);
+		await unitOfWork.SaveChangesAsync();
+		return ServiceResult.Success(HttpStatusCode.NoContent);
+	}
+
+	public async Task<ServiceResult> UpdateAsync(UpdateProductStockRequest request)
+	{
+		var existingProduct = await productRespository.GetByIdAsync(request.ProductId);
+		if (existingProduct is null)
+		{
+			return ServiceResult.Fail("Product not found", System.Net.HttpStatusCode.NotFound);
+		}
+		
+		existingProduct.Stock = request.Quantity;
+		productRespository.Update(existingProduct);
 		await unitOfWork.SaveChangesAsync();
 		return ServiceResult.Success(HttpStatusCode.NoContent);
 	}
