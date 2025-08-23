@@ -1,6 +1,9 @@
 ﻿using App.Services.Products;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace App.Services.Extensions
 {
@@ -8,8 +11,12 @@ namespace App.Services.Extensions
 	{
 		public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
 		{
-			
 			services.AddScoped<IProductService, ProductService>();
+			
+			// async olarak servis metodlarında fluent validation yapmak istersek burayı kapatıyoruz.
+			services.AddFluentValidationAutoValidation();
+			
+			services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 			return services;
 		}
 	}

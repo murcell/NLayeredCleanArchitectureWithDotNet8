@@ -1,10 +1,14 @@
 ﻿using App.Repositories;
 using App.Repositories.Products;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 
 namespace App.Services.Products;
 
+// async validation yapabilmek için IValidator<CreateProductRequest> validator parametresi ekledik
+//public class ProductService(IProductRepository productRespository, IUnitOfWork unitOfWork, IValidator<CreateProductRequest> validator): IProductService
 public class ProductService(IProductRepository productRespository, IUnitOfWork unitOfWork): IProductService
 {
 	public async Task<ServiceResult<List<ProductDto>>> GetTopPriceProductsAsync(int count)
@@ -51,6 +55,24 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 
 	public async Task<ServiceResult<CreateProductResponse>> CreateAsync(CreateProductRequest request)
 	{
+		// 2. Yol : asenkron manuel yöntem
+		// Business Codes
+		// Validation
+		var anyProduct = await productRespository.Where(p => p.Name.ToLower() == request.Name.ToLower())
+			.AnyAsync();
+
+		if (anyProduct)
+		{
+			return ServiceResult<CreateProductResponse>.Fail("Product name must be unique", HttpStatusCode.BadRequest);
+		}
+
+		//// 3. Yol : asenkron yöntem fluent validation .net core pipelinı devre dışı bırakıyoruz
+		//var validationResult = await validator.ValidateAsync(request);
+		//if (!validationResult.IsValid)
+		//{
+		//	return ServiceResult<CreateProductResponse>.Fail(validationResult.Errors.Select(e => e.ErrorMessage).ToList(), HttpStatusCode.BadRequest);
+		//}
+
 		var product = new Product()
 		{
 			Name = request.Name,
