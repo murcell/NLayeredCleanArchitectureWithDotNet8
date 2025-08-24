@@ -1,12 +1,10 @@
 ﻿using App.Repositories;
 using App.Repositories.Products;
-using App.Services.ExceptionHangler;
 using App.Services.Products.Create;
 using App.Services.Products.Update;
+using App.Services.Products.UpdateStock;
 using AutoMapper;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 using System.Net;
 
 namespace App.Services.Products;
@@ -91,12 +89,7 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 		//	return ServiceResult<CreateProductResponse>.Fail(validationResult.Errors.Select(e => e.ErrorMessage).ToList(), HttpStatusCode.BadRequest);
 		//}
 
-		var product = new Product()
-		{
-			Name = request.Name,
-			Price = request.Price,
-			Stock = request.Stock
-		};
+		var product = mapper.Map<Product>(request);
 
 		await productRespository.AddAsync(product);
 		await unitOfWork.SaveChangesAsync();
@@ -115,9 +108,14 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 			return ServiceResult.Fail("Product not found", System.Net.HttpStatusCode.NotFound);
 		}
 
-		product.Name = request.Name;
-		product.Price = request.Price;
-		product.Stock = request.Stock;
+		var isProductNameExist = await productRespository.Where(p => p.Name.ToLower() == request.Name.ToLower() && p.Id!=product.Id).AnyAsync();
+
+		if (isProductNameExist)
+		{
+			return ServiceResult.Fail($"{request.Name} has been already in db", HttpStatusCode.BadRequest);
+		}
+
+		product = mapper.Map(request, product);
 
 		productRespository.Update(product);
 		await unitOfWork.SaveChangesAsync();

@@ -20,6 +20,8 @@ namespace App.Services.Products.Create
 				//.MustAsync(MustBeAUniqueProductNameAsync).WithMessage("Product name must be unique."); // asenkron yöntem
 			RuleFor(x => x.Price)
 				.GreaterThan(0).WithMessage("Price must be greater than zero.");
+			RuleFor(x => x.CategoryId)
+				.GreaterThan(0).WithMessage("Category Id must be greater than zero.");
 
 			RuleFor(x => x.Stock)
 				.InclusiveBetween(1,200).WithMessage("Stock must be between 1 and 250.");

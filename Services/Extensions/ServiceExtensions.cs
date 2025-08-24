@@ -1,4 +1,5 @@
-﻿using App.Services.ExceptionHangler;
+﻿using App.Services.Categories;
+using App.Services.ExceptionHangler;
 using App.Services.Products;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -13,7 +14,7 @@ namespace App.Services.Extensions
 		public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
 		{
 			services.AddScoped<IProductService, ProductService>();
-			
+			services.AddScoped<ICategoryService, CategoryService>();
 			// async olarak servis metodlarında fluent validation yapmak istersek burayı kapatıyoruz.
 			services.AddFluentValidationAutoValidation();
 			services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
