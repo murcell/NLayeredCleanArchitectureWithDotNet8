@@ -102,21 +102,16 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 		// Clean code principles
 		// Before Fast fail
 		// Guard Clouses
-		var product = await productRespository.GetByIdAsync(id);
-		if (product is null)
-		{
-			return ServiceResult.Fail("Product not found", System.Net.HttpStatusCode.NotFound);
-		}
 
-		var isProductNameExist = await productRespository.Where(p => p.Name.ToLower() == request.Name.ToLower() && p.Id!=product.Id).AnyAsync();
+		var isProductNameExist = await productRespository.Where(p => p.Name.ToLower() == request.Name.ToLower() && p.Id!=id).AnyAsync();
 
 		if (isProductNameExist)
 		{
 			return ServiceResult.Fail($"{request.Name} has been already in db", HttpStatusCode.BadRequest);
 		}
 
-		product = mapper.Map(request, product);
-
+		var product = mapper.Map<Product>(request);
+		product.Id = id;
 		productRespository.Update(product);
 		await unitOfWork.SaveChangesAsync();
 		return ServiceResult.Success(HttpStatusCode.NoContent);
@@ -139,11 +134,8 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 	public async Task<ServiceResult> DeleteAsync(int id)
 	{
 		var product = await productRespository.GetByIdAsync(id);
-		if (product is null)
-		{
-			return ServiceResult.Fail("Product not found", System.Net.HttpStatusCode.NotFound);
-		}
-		productRespository.Delete(product);
+		
+		productRespository.Delete(product!);
 		await unitOfWork.SaveChangesAsync();
 		return ServiceResult.Success(HttpStatusCode.NoContent);
 	}

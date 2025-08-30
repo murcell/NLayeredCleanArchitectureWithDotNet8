@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace App.Repositories
 {
-	public class GenericRepository<T>(AppDbContext context) : IGenericRepository<T> where T : class
+	public class GenericRepository<T,TId>(AppDbContext context) : IGenericRepository<T,TId> where T : BaseEntity<TId> where TId : struct
 	{
 		protected AppDbContext Context { get; } = context ?? throw new ArgumentNullException(nameof(context));
 		private readonly DbSet<T> _dbSet = context.Set<T>();
@@ -19,6 +19,8 @@ namespace App.Repositories
 		//	return _dbSet.AsQueryable();
 		//}
 		public IQueryable<T> Where(Expression<Func<T, bool>> predicate)=> _dbSet.Where(predicate).AsNoTracking();
+
+		public Task<bool> AnyAsync(TId id) => _dbSet.AnyAsync(x => x.Id.Equals(id));
 
 		public ValueTask<T?> GetByIdAsync(int id)=> _dbSet.FindAsync(id);
 

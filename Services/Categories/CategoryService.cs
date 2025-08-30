@@ -32,19 +32,14 @@ public class CategoryService(ICategoryRepository categoryRepository, IUnitOfWork
 
 	public async Task<ServiceResult> UpdateAsync(int id, UpdateCategoryRequest updateCategoryRequest)
 	{
-		var category = await categoryRepository.GetByIdAsync(id);
-		if (category == null)
-		{
-			return ServiceResult.Fail("Category not found to updated", HttpStatusCode.NotFound);
-		}
-	
+		
 		var anyCategory = await categoryRepository.Where(p => p.Name.ToLower() == updateCategoryRequest.Name.ToLower() && p.Id != id).AnyAsync();
 
 		if (anyCategory)
 		{
 			return ServiceResult.Fail("Category name must be unique", HttpStatusCode.BadRequest);
 		}
-		category = mapper.Map(updateCategoryRequest, category);
+		var category = mapper.Map<Category>(updateCategoryRequest);
 
 		categoryRepository.Update(category);
 		await unitOfWork.SaveChangesAsync();
@@ -54,11 +49,8 @@ public class CategoryService(ICategoryRepository categoryRepository, IUnitOfWork
 	public async Task<ServiceResult> DeleteAsync(int id)
 	{
 		var category = await categoryRepository.GetByIdAsync(id);
-		if (category == null)
-		{
-			return ServiceResult.Fail("Category not found", HttpStatusCode.NotFound);
-		}
-		categoryRepository.Delete(category);
+		
+		categoryRepository.Delete(category!);
 		await unitOfWork.SaveChangesAsync();
 		return ServiceResult.Success(HttpStatusCode.NoContent);
 	}

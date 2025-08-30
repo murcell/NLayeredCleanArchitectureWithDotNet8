@@ -8,18 +8,13 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers(options =>
 {
 	options.Filters.Add<FluentValidationFilter>();
 	options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
 
 });
-builder.Services.Configure<ApiBehaviorOptions>(options =>
-{
-	// .net default hatasýný kapatýyoruz kendi hatamýzý döndürüyoruz
-	options.SuppressModelStateInvalidFilter = true;
-});
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
