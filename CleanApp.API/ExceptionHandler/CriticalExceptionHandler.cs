@@ -1,13 +1,7 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using App.Domain.Exceptions;
+using Microsoft.AspNetCore.Diagnostics;
 
-namespace App.Services.ExceptionHangler
+namespace CleanApp.API.ExceptionHandler
 {
 	public class CriticalExceptionHandler() : IExceptionHandler
 	{

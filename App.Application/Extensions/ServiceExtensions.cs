@@ -1,7 +1,6 @@
-﻿using App.Services.Categories;
-using App.Services.ExceptionHandler;
-using App.Services.Filters;
-using App.Services.Products;
+﻿using App.Application.Feature.Category;
+using App.Application.Feature.Products;
+using App.Services.Categories;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
@@ -22,15 +21,14 @@ namespace App.Services.Extensions
 			});
 			services.AddScoped<IProductService, ProductService>();
 			services.AddScoped<ICategoryService, CategoryService>();
-			services.AddScoped(typeof(NotFoundFilter<,>));
+			
 
 			// async olarak servis metodlarında fluent validation yapmak istersek burayı kapatıyoruz.
 			services.AddFluentValidationAutoValidation();
 			services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 			services.AddAutoMapper(Assembly.GetExecutingAssembly());
-			services.AddExceptionHandler<CriticalExceptionHandler>();
-			services.AddExceptionHandler<GlobalExceptionHandler>();
+		
 			return services;
 		}
 	}
