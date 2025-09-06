@@ -4,7 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace App.Services.ExceptionHangler
+namespace App.Domain.Options
 {
-	public class CriticalException(string message):Exception(message);
+	public class ServiceBusOption
+	{
+		public string Url { get; set; }=default!;
+
+	}
 }

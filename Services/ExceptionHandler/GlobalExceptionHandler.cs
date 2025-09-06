@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 
-namespace App.Services.ExceptionHangler
+namespace App.Services.ExceptionHandler
 {
 	public class GlobalExceptionHandler : IExceptionHandler
 	{
