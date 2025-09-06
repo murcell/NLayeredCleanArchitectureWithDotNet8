@@ -1,42 +1,26 @@
+using App.Bus;
 using App.Persistence.Extensions;
 using App.Services.Extensions;
-using CleanApp.API.ExceptionHandler;
-using CleanApp.API.Filters;
+using CleanApp.API.Extensions;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers(options =>
-{
-	options.Filters.Add<FluentValidationFilter>();
-	options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
-
-});
+builder.Services.AddControllersWithFiltersExt();
+builder.Services.AddExceptionHandlerExt();
+builder.Services.AddCachingExt();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerExt();
 // burayý temiz turmak yazmak yerine extensions olarak yazdýk 
 builder.Services.AddRepositories(builder.Configuration);
 builder.Services.AddServices(builder.Configuration);
-builder.Services.AddExceptionHandler<CriticalExceptionHandler>();
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddScoped(typeof(NotFoundFilter<,>));
+builder.Services.AddBusExt(builder.Configuration);
 
 var app = builder.Build();
 
-app.UseExceptionHandler(x => { });
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-	app.UseSwagger();
-	app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
+app.UseConfigurePipelineExt();
 
 app.MapControllers();
 

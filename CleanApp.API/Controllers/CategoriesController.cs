@@ -14,7 +14,7 @@ public class CategoriesController(ICategoryService categoryService) : CustomBase
 
 	[HttpGet("{id:int}")]
 	public async Task<IActionResult> GetCategoryById(int id) => CreateActionResult(await categoryService.GetByIdAsync(id));
-
+	 
 	[HttpGet("{id:int}/products")]
 	public async Task<IActionResult> GetCategoryWithProducts(int id) => CreateActionResult(await categoryService.GetCategoryWithProductsAsync(id));
 

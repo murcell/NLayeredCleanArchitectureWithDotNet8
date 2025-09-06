@@ -1,10 +1,13 @@
 ﻿using App.Application;
+using App.Application.Contracts.Caching;
 using App.Application.Contracts.Persistance;
+using App.Application.Contracts.ServiceBus;
 using App.Application.Feature.Products.Create;
 using App.Application.Feature.Products.Dto;
 using App.Application.Feature.Products.Update;
 using App.Application.Feature.Products.UpdateStock;
 using App.Domain.Entities;
+using App.Domain.Events;
 using AutoMapper;
 using System.Net;
 
@@ -12,8 +15,10 @@ namespace App.Application.Feature.Products;
 
 // async validation yapabilmek için IValidator<CreateProductRequest> validator parametresi ekledik
 //public class ProductService(IProductRepository productRespository, IUnitOfWork unitOfWork, IValidator<CreateProductRequest> validator): IProductService
-public class ProductService(IProductRepository productRespository, IUnitOfWork unitOfWork,IMapper mapper): IProductService
+public class ProductService(IProductRepository productRespository, IUnitOfWork unitOfWork,IMapper mapper, ICacheService cacheService, IServiceBus serviceBus): IProductService
 {
+	private const string ProductListCacheKey = "ProductListCacheKey";
+
 	public async Task<ServiceResult<List<ProductDto>>> GetTopPriceProductsAsync(int count)
 	{
 		var products = await productRespository.GetTopPriceProductsAsync(count);
@@ -44,8 +49,19 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 
 	public async Task<ServiceResult<List<ProductDto>>> GetAllListAsync()
 	{
+		// cache aside design pattern
+		// 1. cache sor
+		// 2. db den al
+		// 3. cache e yaz
+		var cachedProducts = await cacheService.GetAsync<List<ProductDto>>(ProductListCacheKey);
+		if (cachedProducts is not null)
+			return ServiceResult<List<ProductDto>>.Success(cachedProducts);
+
 		var products = await productRespository.GetAllAsync();
 		var productsAsDto = mapper.Map<List<ProductDto>>(products);
+
+		await cacheService.AddAsync(ProductListCacheKey, productsAsDto, TimeSpan.FromMinutes(1));
+
 		#region Manuel Mapping
 		//var productsAsDto = products.Select(p => new ProductDto(p.Id, p.Name, p.Price, p.Stock)).ToList(); 
 		#endregion
@@ -92,6 +108,9 @@ public class ProductService(IProductRepository productRespository, IUnitOfWork u
 
 		await productRespository.AddAsync(product);
 		await unitOfWork.SaveChangesAsync();
+
+		await serviceBus.PublishAsync(new ProductAddedEvent(product.Id, product.Name, product.Price));
+
 		return ServiceResult<CreateProductResponse>.SuccessAsCreated(new CreateProductResponse(product.Id),$"api/products/{product.Id}");
 
 	}
